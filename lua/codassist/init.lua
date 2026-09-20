@@ -1,5 +1,7 @@
 local M = {}
 
+local ns = vim.api.nvim_create_namespace("codassist")
+
 function M.setup()
 	vim.keymap.set("i", "<M-Space>", function()
 		local row, col = unpack(vim.api.nvim_win_get_cursor(0))
@@ -32,8 +34,25 @@ function M.setup()
 		vim.system({ "curl", "http://localhost:11434/api/generate", "-d", body }, function(out)
 			local response = vim.json.decode(out.stdout).response
 			print("response ---\n" .. response .. "|||")
+
+			local response_lines = vim.split(response, "\n")
+			local end_row = row + #response_lines - 1
+			local end_col
+
+			if #response_lines == 1 then
+				end_col = col + #response_lines[1]
+			else
+				end_col = #response_lines[#response_lines]
+			end
+
 			vim.schedule(function()
-				vim.api.nvim_put(vim.split(response, "\n"), "", false, true)
+				vim.api.nvim_put(response_lines, "", false, true)
+				vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+				vim.api.nvim_buf_set_extmark(0, ns, row, col, {
+					end_row = end_row,
+					end_col = end_col,
+					hl_group = "DiffAdd",
+				})
 			end)
 		end)
 	end)
