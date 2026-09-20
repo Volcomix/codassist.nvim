@@ -49,7 +49,12 @@ function M.setup()
 			end
 
 			vim.schedule(function()
+				-- Use a new undo block for the inserted response
+				-- https://neovim.io/doc/user/undo/#undo-break
+				vim.opt_global.undolevels = vim.opt_global.undolevels
+
 				vim.api.nvim_put(response_lines, "", false, true)
+
 				vim.api.nvim_buf_set_extmark(0, ns, row, col, {
 					end_row = end_row,
 					end_col = end_col,
