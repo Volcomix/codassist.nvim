@@ -2,20 +2,24 @@ local M = {}
 
 local ns = vim.api.nvim_create_namespace("codassist")
 
+local function clear_highlight()
+	vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+end
+
 function M.setup()
+	vim.api.nvim_create_autocmd("InsertCharPre", { callback = clear_highlight })
+	vim.api.nvim_create_autocmd("InsertLeave", { callback = clear_highlight })
+
 	vim.keymap.set("i", "<M-Space>", function()
 		local row, col = unpack(vim.api.nvim_win_get_cursor(0))
 		row = row - 1
-		print("row = " .. row .. ", col = " .. col)
 
 		local prefix_lines = vim.api.nvim_buf_get_text(0, 0, 0, row, col, {})
 		local prefix = table.concat(prefix_lines, "\n")
-		print("prefix ---\n" .. prefix .. "|||")
 
 		local line_count = vim.api.nvim_buf_line_count(0) - 1
 		local suffix_lines = vim.api.nvim_buf_get_text(0, row, col, line_count, -1, {})
 		local suffix = table.concat(suffix_lines, "\n")
-		print("suffix ---\n" .. suffix .. "|||")
 
 		local body = vim.json.encode({
 			model = "gemma4",
@@ -33,9 +37,8 @@ function M.setup()
 
 		vim.system({ "curl", "http://localhost:11434/api/generate", "-d", body }, function(out)
 			local response = vim.json.decode(out.stdout).response
-			print("response ---\n" .. response .. "|||")
-
 			local response_lines = vim.split(response, "\n")
+
 			local end_row = row + #response_lines - 1
 			local end_col
 
@@ -47,7 +50,6 @@ function M.setup()
 
 			vim.schedule(function()
 				vim.api.nvim_put(response_lines, "", false, true)
-				vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
 				vim.api.nvim_buf_set_extmark(0, ns, row, col, {
 					end_row = end_row,
 					end_col = end_col,
