@@ -2,6 +2,13 @@ local M = {}
 
 local ns = vim.api.nvim_create_namespace("codassist")
 
+---@class codassist.Context
+---@field prefix string
+---@field suffix string
+
+---@param row integer
+---@param col integer
+---@return codassist.Context
 local function build_context(row, col)
 	row = row - 1
 
@@ -16,6 +23,7 @@ local function build_context(row, col)
 	}
 end
 
+---@param context codassist.Context
 local function build_body(context)
 	return vim.json.encode({
 		model = "gemma4",
@@ -32,6 +40,9 @@ local function build_body(context)
 	})
 end
 
+---@param lines string[]
+---@param row integer
+---@param col integer
 local function calculate_end(lines, row, col)
 	local end_col
 
@@ -47,6 +58,10 @@ local function calculate_end(lines, row, col)
 	}
 end
 
+---@param start_row integer
+---@param start_col integer
+---@param end_row integer
+---@param end_col integer
 local function show_highlight(start_row, start_col, end_row, end_col)
 	vim.api.nvim_buf_set_extmark(0, ns, start_row, start_col, {
 		end_row = end_row,
@@ -59,6 +74,9 @@ local function hide_highlight()
 	vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
 end
 
+---@param lines string[]
+---@param row integer
+---@param col integer
 local function insert_completion(lines, row, col)
 	-- Use a new undo block for the inserted response
 	-- https://neovim.io/doc/user/undo/#undo-break
@@ -70,6 +88,9 @@ local function insert_completion(lines, row, col)
 	show_highlight(row, col, highlight_end.row, highlight_end.col)
 end
 
+---@param out vim.SystemCompleted
+---@param row integer
+---@param col integer
 local function handle_output(out, row, col)
 	local response = vim.json.decode(out.stdout).response
 	local lines = vim.split(response, "\n")
