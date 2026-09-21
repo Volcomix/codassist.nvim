@@ -21,16 +21,40 @@ local function build_context(row, col)
 	}
 end
 
+local system_prompt = [[
+You are an inline code completion engine.
+The user provides source code containing exactly one <MISSING_CODE> marker.
+Replace <MISSING_CODE> with the code that belongs there.
+Return only the replacement code.
+Do not repeat any surrounding code.
+Do not output Markdown, code fences, explanations, or comments about the completion.
+]]
+
+local user_prompt_prefix = [[
+Replace <MISSING_CODE> in the following source code.
+Return only the code that should replace <MISSING_CODE>.
+
+```
+]]
+
+local user_prompt_middle = "<MISSING_CODE>"
+
+local user_prompt_suffix = [[
+
+```
+]]
+
 ---@param context codassist.Context
 local function build_body(context)
 	return vim.json.encode({
 		model = "gemma4",
-		prompt = "<|fim_prefix|>" .. context.prefix .. "<|fim_suffix|>" .. context.suffix .. "<|fim_middle|>",
+		system = system_prompt,
+		prompt = user_prompt_prefix .. context.prefix .. user_prompt_middle .. context.suffix .. user_prompt_suffix,
 		stream = false,
 		think = false,
 		keep_alive = "60m",
 		options = {
-			temperature = 1.0,
+			temperature = 0.0,
 			top_p = 0.95,
 			top_k = 64,
 			num_predict = 128,
