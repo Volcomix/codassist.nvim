@@ -10,8 +10,6 @@ local ns = vim.api.nvim_create_namespace("codassist")
 ---@param col integer
 ---@return codassist.Context
 local function build_context(row, col)
-	row = row - 1
-
 	local prefix_lines = vim.api.nvim_buf_get_text(0, 0, 0, row, col, {})
 
 	local line_count = vim.api.nvim_buf_line_count(0) - 1
@@ -102,6 +100,8 @@ end
 
 local function autocomplete()
 	local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+	row = row - 1
+
 	local context = build_context(row, col)
 	local body = build_body(context)
 
