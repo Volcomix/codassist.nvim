@@ -1,0 +1,26 @@
+#!/bin/sh
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+
+if test -z "$COMMIT_SOURCE"; then
+  DIFF=$(git diff --cached)
+  echo "Generating commit message..."
+  curl -sS localhost:8080/v1/chat/completions \
+    -d "$(jq -n --arg diff "$DIFF" '{
+      "messages": [
+        {
+          "role": "system",
+          "content": "You write concise Git commit messages. Analyze the staged diff and produce a single commit message. Use imperative mood. Do not include quotes, markdown, explanations, or a diff. Output only the commit message."
+        },
+        {
+          "role": "user",
+          "content": ("Staged diff:\n\n" + $diff)
+        }
+      ],
+      temperature: 1.0,
+		  top_p: 0.95,
+		  top_k: 64
+    }')" |
+    jq -er '.choices[0].message.content' >"$COMMIT_MSG_FILE"
+fi
