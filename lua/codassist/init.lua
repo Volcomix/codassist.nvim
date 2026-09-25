@@ -46,18 +46,23 @@ local user_prompt_suffix = [[
 
 ---@param context codassist.Context
 local function build_body(context)
+	local user_prompt = user_prompt_prefix
+		.. context.prefix
+		.. user_prompt_middle
+		.. context.suffix
+		.. user_prompt_suffix
+
 	return vim.json.encode({
-		model = "gemma4",
-		system = system_prompt,
-		prompt = user_prompt_prefix .. context.prefix .. user_prompt_middle .. context.suffix .. user_prompt_suffix,
-		stream = false,
-		think = false,
-		keep_alive = "60m",
-		options = {
-			temperature = 0.0,
-			top_p = 0.95,
-			top_k = 64,
-			num_predict = 128,
+		messages = {
+			{ role = "system", content = system_prompt },
+			{ role = "user", content = user_prompt },
+		},
+		max_tokens = 128,
+		temperature = 0.0,
+		top_p = 0.95,
+		top_k = 64,
+		chat_template_kwargs = {
+			enable_thinking = false,
 		},
 	})
 end
@@ -114,8 +119,8 @@ end
 ---@param row integer
 ---@param col integer
 local function handle_output(out, row, col)
-	local response = vim.json.decode(out.stdout).response
-	local lines = vim.split(response, "\n")
+	local content = vim.json.decode(out.stdout).choices[1].message.content
+	local lines = vim.split(content, "\n")
 
 	vim.schedule(function()
 		insert_completion(lines, row, col)
@@ -129,7 +134,7 @@ local function autocomplete()
 	local context = build_context(row, col)
 	local body = build_body(context)
 
-	vim.system({ "curl", "http://localhost:11434/api/generate", "-d", body }, function(out)
+	vim.system({ "curl", "http://localhost:8080/v1/chat/completions", "-d", body }, function(out)
 		handle_output(out, row, col)
 	end)
 end
