@@ -18,9 +18,12 @@ if test -z "$COMMIT_SOURCE"; then
           "content": ("Staged diff:\n\n" + $diff)
         }
       ],
-      temperature: 1.0,
+      temperature: 0.0,
       top_p: 0.95,
-      top_k: 64
+      top_k: 64,
+      chat_template_kwargs: {
+        enable_thinking: false
+      }
     }')" |
     jq -er '.choices[0].message.content' >"$COMMIT_MSG_FILE"
 fi
