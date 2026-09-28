@@ -19,8 +19,8 @@ if test -z "$COMMIT_SOURCE"; then
         }
       ],
       temperature: 1.0,
-		  top_p: 0.95,
-		  top_k: 64
+      top_p: 0.95,
+      top_k: 64
     }')" |
     jq -er '.choices[0].message.content' >"$COMMIT_MSG_FILE"
 fi
