@@ -1,3 +1,5 @@
+local wk = require("which-key")
+
 local M = {}
 
 local ns = vim.api.nvim_create_namespace("codassist")
@@ -140,6 +142,26 @@ local function autocomplete()
 end
 
 function M.setup()
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = "gitcommit",
+		callback = function()
+			wk.add({
+				{
+					"<leader>a",
+					group = "assist",
+					icon = { icon = "󰢚", color = "orange" },
+					buffer = 0,
+				},
+			})
+
+			vim.keymap.set("n", "<leader>ac", function()
+				print("TODO: regenerate commit message")
+			end, {
+				desc = "Regenerate commit message",
+				buf = 0,
+			})
+		end,
+	})
 	vim.api.nvim_create_autocmd("InsertCharPre", { callback = hide_highlight })
 	vim.api.nvim_create_autocmd("InsertLeave", { callback = hide_highlight })
 	vim.keymap.set("i", "<M-Space>", autocomplete)
