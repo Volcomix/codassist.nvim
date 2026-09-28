@@ -11,7 +11,7 @@ if test -z "$COMMIT_SOURCE"; then
       "messages": [
         {
           "role": "system",
-          "content": "You write concise Git commit messages. Analyze the staged diff and produce a single commit message. Use imperative mood. Do not include quotes, markdown, explanations, or a diff. Output only the commit message."
+          "content": "You write concise Git change descriptions. Analyze the staged diff and produce exactly one concise sentence describing the actual change introduced by the diff. Use imperative mood. Do not use a conventional-commit prefix such as feat:, fix:, chore:, refactor:, docs:, or test:. Do not mention the diff itself. Do not include quotes, markdown, explanations, or a period at the end. Output only the sentence."
         },
         {
           "role": "user",
