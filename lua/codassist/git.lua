@@ -27,16 +27,20 @@ local function build_body(diff)
 	})
 end
 
+---@param lines string[]
+local function find_comment_start(lines)
+	for i, line in ipairs(lines) do
+		if line:match("^%s*#") then
+			return i - 1
+		end
+	end
+	return #lines
+end
+
 ---@param message string
 local function set_commit_message(message)
 	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-	local comment_start = #lines
-	for i, line in ipairs(lines) do
-		if line:match("^%s*#") then
-			comment_start = i - 1
-			break
-		end
-	end
+	local comment_start = find_comment_start(lines)
 	vim.api.nvim_buf_set_lines(0, 0, comment_start, false, vim.split(message, "\n"))
 end
 
