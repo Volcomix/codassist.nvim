@@ -1,5 +1,6 @@
 local wk = require("which-key")
 local Completion = require("codassist.completion")
+local Git = require("codassist.git")
 
 local M = {}
 
@@ -10,20 +11,10 @@ local keymap_group = {
 	buffer = 0,
 }
 
----@param out vim.SystemCompleted
-local function handle_diff_output(out)
-	local diff = out.stdout
-	print("diff ---\n" .. diff .. "|||")
-end
-
-local function generate_commit_message()
-	vim.system({ "git", "diff", "--cached" }, handle_diff_output)
-end
-
 local function setup_gitcommit()
 	wk.add({ keymap_group })
 
-	vim.keymap.set("n", "<leader>ac", generate_commit_message, {
+	vim.keymap.set("n", "<leader>ac", Git.generate_commit_message, {
 		desc = "Generate commit message",
 		buf = 0,
 	})
