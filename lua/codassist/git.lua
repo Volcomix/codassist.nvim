@@ -27,10 +27,26 @@ local function build_body(diff)
 	})
 end
 
+---@param message string
+local function set_commit_message(message)
+	local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+	local comment_start = #lines
+	for i, line in ipairs(lines) do
+		if line:match("^%s*#") then
+			comment_start = i - 1
+			break
+		end
+	end
+	vim.api.nvim_buf_set_lines(0, 0, comment_start, false, vim.split(message, "\n"))
+end
+
 ---@param out vim.SystemCompleted
 local function handle_completion_output(out)
-	local content = vim.json.decode(out.stdout).choices[1].message.content
-	print("content ---\n" .. content .. "|||")
+	---@type string
+	local message = vim.json.decode(out.stdout).choices[1].message.content
+	vim.schedule(function()
+		set_commit_message(message)
+	end)
 end
 
 ---@param out vim.SystemCompleted
