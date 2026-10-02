@@ -1,7 +1,7 @@
 local M = {}
 
 local system_prompt = [[
-Write a git commit message. The message must be short and fit on a single line, without any conventional prefix.
+Write a short, single-line git commit message. Do not use a conventional prefix.
 ]]
 
 ---@param diff string?
