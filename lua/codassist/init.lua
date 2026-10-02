@@ -1,5 +1,4 @@
 local wk = require("which-key")
-local Completion = require("codassist.completion")
 local Git = require("codassist.git")
 
 local M = {}
@@ -22,9 +21,6 @@ end
 
 function M.setup()
 	vim.api.nvim_create_autocmd("FileType", { pattern = "gitcommit", callback = setup_gitcommit })
-	vim.api.nvim_create_autocmd("InsertCharPre", { callback = Completion.clear })
-	vim.api.nvim_create_autocmd("InsertLeave", { callback = Completion.clear })
-	vim.keymap.set("i", "<M-Space>", Completion.generate, { desc = "Autocomplete" })
 end
 
 return M
