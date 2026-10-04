@@ -8,6 +8,9 @@ local function build_body(system_prompt, user_prompt)
 			{ role = "system", content = system_prompt },
 			{ role = "user", content = user_prompt },
 		},
+		temperature = 1.0,
+		top_p = 0.95,
+		top_k = 64,
 		chat_template_kwargs = {
 			enable_thinking = false,
 		},
@@ -29,7 +32,7 @@ end
 ---@param on_complete fun(result: codassist.GenerateResult)
 function M.generate(system_prompt, user_prompt, on_complete)
 	local body = build_body(system_prompt, user_prompt)
-	vim.system({ "curl", "http://localhost:8080/v1/chat/completions", "-d", body }, function(out)
+	vim.system({ "curl", "-sS", "http://localhost:8080/v1/chat/completions", "-d", body }, function(out)
 		handle_output(out, on_complete)
 	end)
 end

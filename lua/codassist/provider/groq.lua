@@ -30,6 +30,7 @@ function M.generate(system_prompt, user_prompt, on_complete)
 	local body = build_body(system_prompt, user_prompt)
 	vim.system({
 		"curl",
+		"-sS",
 		"https://api.groq.com/openai/v1/chat/completions",
 		"-H",
 		"Authorization: Bearer " .. os.getenv("GROQ_API_KEY"),
