@@ -11,10 +11,10 @@ local M = {}
 ---@param node TSNode
 local function is_function(node)
 	local type = node:type()
-	if type:match("call") then
+	if type:match("call") or type:match("index") then
 		return false
 	end
-	return type:match("function") or type:match("method") or type:match("lambda")
+	return type:match("function") or type:match("method") or type == "lambda"
 end
 
 local function find_surrounding_function()
@@ -62,6 +62,29 @@ local function find_symbol(symbols, range, surrounding)
 	return nil
 end
 
+---@param node TSNode
+local function find_previous_call(node)
+	if node:type():match("call") then
+		return node
+	end
+	local previous = node:prev_named_sibling()
+	if previous ~= nil then
+		local call = find_previous_call(previous)
+		if call ~= nil then
+			return call
+		end
+	end
+	local parent = node:parent()
+	if parent ~= nil then
+		local call = find_previous_call(parent)
+		if call ~= nil then
+			return call
+		end
+	end
+	return nil
+end
+
+-- TODO: refactor the whole file
 function M.generate_body()
 	local surrounding_function = find_surrounding_function()
 	if surrounding_function == nil then
@@ -124,7 +147,52 @@ function M.generate_body()
 				vim.log.levels.INFO,
 				{ title = "Document symbol" }
 			)
-			vim.notify(symbol.detail, vim.log.levels.INFO, { title = "Symbol details" })
+			local previous_call = find_previous_call(surrounding_function)
+			if previous_call ~= nil then
+				local call_from_line, call_from_col, call_to_line, call_to_col = previous_call:range()
+				local call_name = previous_call:field("name")[1] or previous_call:field("function")[1]
+				local call_name_text = vim.treesitter.get_node_text(call_name, 0)
+				vim.notify(
+					call_name_text
+						.. " ("
+						.. previous_call:type()
+						.. ") from="
+						.. call_from_line
+						.. ":"
+						.. call_from_col
+						.. " to="
+						.. call_to_line
+						.. ":"
+						.. call_to_col,
+					vim.log.levels.INFO,
+					{ title = "Previous call" }
+				)
+				if
+					call_from_line > symbol.range.start.line
+					or (call_from_line == symbol.range.start.line and call_from_col > symbol.range.start.character)
+				then
+					vim.notify("Previous call is best!!!", vim.log.levels.INFO, { title = "Function name" })
+				else
+					local function_name = surrounding_function:field("name")[1]
+					local function_name_text = ""
+					if function_name ~= nil then
+						function_name_text = vim.treesitter.get_node_text(function_name, 0)
+					end
+					vim.notify(
+						"Comparing function_name_text="
+							.. function_name_text
+							.. " symbol.name="
+							.. symbol.name
+							.. " call_name_text="
+							.. call_name_text,
+						vim.log.levels.INFO,
+						{ title = "Function name" }
+					)
+					if symbol.name ~= function_name_text and symbol.name == call_name_text then
+						vim.notify("Previous call is perfectly best", vim.log.levels.INFO, { title = "Function name" })
+					end
+				end
+			end
 		end
 	)
 end
