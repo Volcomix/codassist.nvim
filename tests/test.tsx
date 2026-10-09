@@ -14,3 +14,15 @@ const [testouille, pipoup] = Promise.all([
 function plop(a: number, b: number) {
   console.log("Ok")
 }
+
+/**
+  * Sloubi 2
+  */
+function sloubi2(fn: (a: number, b: number) => void) {
+  console.log("sloubi2")
+}
+
+export function sloubi3() {
+  sloubi2((a: number, b: number) => console.log("sloubi4"))
+  console.log("sloubi3")
+}
